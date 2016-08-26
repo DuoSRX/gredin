@@ -22,20 +22,14 @@ struct Player {
 //     player: Player
 // }
 
-trait Moveable {
-    fn can_move(&self, world: &World, dest: Point) -> bool;
-    fn move_to(&mut self, world: &World, dest: Point);
-}
+impl Player {
+    fn move_to(&mut self, world: &mut World, dest: Point) {
+        let tile = world.at(dest.x, dest.y);
 
-impl Moveable for Player {
-    fn can_move(&self, _world: &World, _dest: Point) -> bool {
-       //world.at(dest.x, dest.y).and_then(||)
-       true // FIXME: Implement
-    }
-
-    fn move_to(&mut self, world: &World, dest: Point) {
-        if self.can_move(world, dest) {
+        if tile.can_move_through() {
             self.location = dest;
+        } else if tile.diggable() {
+            world.dig(dest.x, dest.y);
         }
     }
 }
@@ -74,7 +68,7 @@ fn main() {
 
         draw_world(&rustbox, &world);
         draw_player(&rustbox, &player);
-        draw_ui(&rustbox, &player);
+        // draw_ui(&rustbox, &player);
 
         rustbox.present();
 
@@ -83,19 +77,19 @@ fn main() {
                 match key {
                     Key::Left | Key::Char('h') => {
                         let loc = player.location.left();
-                        player.move_to(&world, loc);
+                        player.move_to(&mut world, loc);
                     }
                     Key::Right | Key::Char('l') => {
                         let loc = player.location.right();
-                        player.move_to(&world, loc);
+                        player.move_to(&mut world, loc);
                     }
                     Key::Up | Key::Char('k') => {
                         let loc = player.location.up();
-                        player.move_to(&world, loc);
+                        player.move_to(&mut world, loc);
                     }
                     Key::Down | Key::Char('j') => {
                         let loc = player.location.down();
-                        player.move_to(&world, loc);
+                        player.move_to(&mut world, loc);
                     }
                     Key::Char('s') => { world.smooth() }
                     Key::Char('q') => { break; }

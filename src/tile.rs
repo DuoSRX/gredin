@@ -20,4 +20,8 @@ impl Tile {
             _ => false
         }
     }
+
+    pub fn diggable(&self) -> bool {
+        *self == Tile::Wall
+    }
 }

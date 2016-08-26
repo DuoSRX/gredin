@@ -9,6 +9,12 @@ pub struct World {
 }
 
 impl World {
+    pub fn dig(&mut self, x: i16, y: i16) {
+        if self.at(x, y).diggable() {
+            self.tiles[y as usize][x as usize] = Tile::Empty;
+        }
+    }
+
     pub fn generate() -> World {
         let mut tiles = Vec::with_capacity(50);
         let mut rng = thread_rng();
