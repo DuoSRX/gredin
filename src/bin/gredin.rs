@@ -10,6 +10,9 @@ use rustbox::Key;
 use gredin::point::Point;
 use gredin::world::World;
 
+const SCREEN_WIDTH: i16 = 80;
+const SCREEN_HEIGHT: i16 = 21;
+
 struct Player {
     location: Point
 }
