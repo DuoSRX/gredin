@@ -101,7 +101,6 @@ fn main() {
                         let loc = player.location.down();
                         player.move_to(&mut world, loc);
                     }
-                    Key::Char('s') => { world.smooth() }
                     Key::Char('q') => { break; }
                     _ => { }
                 }

@@ -1,6 +1,5 @@
 use rand::{thread_rng, Rng};
 use tile::Tile;
-use point::Point;
 use creature::Creature;
 
 const WORLD_WIDTH: i16 = 100;
@@ -26,10 +25,16 @@ impl World {
             tiles.push(World::random_row(&mut rng));
         }
 
-        World {
+        let mut world = World {
             tiles: tiles,
             creatures: Vec::new(),
+        };
+
+        for _ in 0..7 {
+            world.smooth();
         }
+
+        world
     }
 
     pub fn smooth(&mut self) {
