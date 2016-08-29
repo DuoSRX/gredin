@@ -1,11 +1,14 @@
 use rand::{thread_rng, Rng};
 use tile::Tile;
+use point::Point;
+use creature::Creature;
 
 const WORLD_WIDTH: i16 = 100;
 const WORLD_HEIGHT: i16 = 100;
 
 pub struct World {
-    pub tiles: Vec<Vec<Tile>>
+    pub tiles: Vec<Vec<Tile>>,
+    pub creatures: Vec<Creature>,
 }
 
 impl World {
@@ -23,7 +26,10 @@ impl World {
             tiles.push(World::random_row(&mut rng));
         }
 
-        World { tiles: tiles }
+        World {
+            tiles: tiles,
+            creatures: Vec::new(),
+        }
     }
 
     pub fn smooth(&mut self) {

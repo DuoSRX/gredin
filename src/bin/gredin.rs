@@ -7,6 +7,7 @@ use std::default::Default;
 use rustbox::{Color, RustBox};
 use rustbox::Key;
 
+use gredin::creature::Creature;
 use gredin::point::Point;
 use gredin::world::World;
 
@@ -46,6 +47,12 @@ fn draw_player(rustbox: &rustbox::RustBox, player: &Player) {
     rustbox.print(player.location.x as usize, player.location.y as usize, rustbox::RB_BOLD, Color::Red, Color::Black, "@");
 }
 
+fn draw_creatures(rustbox: &rustbox::RustBox, world: &World) {
+    for c in world.creatures.iter() {
+        rustbox.print(c.location.x as usize, c.location.y as usize, rustbox::RB_BOLD, Color::Yellow, Color::Black, c.to_string().as_ref())
+    }
+}
+
 fn draw_ui(rustbox: &rustbox::RustBox, player: &Player) {
     let loc = format!("Coords: [{} - {}]", player.location.x, player.location.y);
     rustbox.print(20, 20, rustbox::RB_BOLD, Color::White, Color::Black, loc.as_ref());
@@ -61,6 +68,8 @@ fn main() {
     let mut player = Player { location: location };
 
     let mut world = World::generate();
+    let kobold = Creature::kobold(20, 20);
+    world.creatures.push(kobold);
     //let game = Game { world: world, player: player };
 
     loop {
@@ -68,6 +77,7 @@ fn main() {
 
         draw_world(&rustbox, &world);
         draw_player(&rustbox, &player);
+        draw_creatures(&rustbox, &world);
         // draw_ui(&rustbox, &player);
 
         rustbox.present();
