@@ -1,4 +1,5 @@
 extern crate rand;
+extern crate rustbox;
 
 pub mod creature;
 pub mod point;

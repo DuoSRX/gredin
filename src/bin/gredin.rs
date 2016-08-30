@@ -3,37 +3,24 @@ extern crate rustbox;
 
 use std::error::Error;
 use std::default::Default;
+use std::cell::RefCell;
+use std::rc::Rc;
 
 use rustbox::{Color, RustBox};
 use rustbox::Key;
 
 use gredin::creature::Creature;
 use gredin::point::Point;
+use gredin::world::GameInfo;
 use gredin::world::World;
 
-const SCREEN_WIDTH: i16 = 80;
-const SCREEN_HEIGHT: i16 = 21;
-
-struct Player {
-    location: Point
-}
+// const SCREEN_WIDTH: i16 = 80;
+// const SCREEN_HEIGHT: i16 = 21;
 
 // struct Game {
 //     world: World,
 //     player: Player
 // }
-
-impl Player {
-    fn move_to(&mut self, world: &mut World, dest: Point) {
-        let tile = world.at(dest.x, dest.y);
-
-        if tile.can_move_through() {
-            self.location = dest;
-        } else if tile.diggable() {
-            world.dig(dest.x, dest.y);
-        }
-    }
-}
 
 fn draw_world(rustbox: &rustbox::RustBox, world: &World) {
     for (y, row) in world.tiles.iter().enumerate() {
@@ -43,20 +30,14 @@ fn draw_world(rustbox: &rustbox::RustBox, world: &World) {
     }
 }
 
-fn draw_player(rustbox: &rustbox::RustBox, player: &Player) {
-    rustbox.print(player.location.x as usize, player.location.y as usize, rustbox::RB_BOLD, Color::Red, Color::Black, "@");
-}
-
 fn draw_creatures(rustbox: &rustbox::RustBox, world: &World) {
     for c in world.creatures.iter() {
         rustbox.print(c.location.x as usize, c.location.y as usize, rustbox::RB_BOLD, Color::Yellow, Color::Black, c.to_string().as_ref())
     }
 }
 
-fn draw_ui(rustbox: &rustbox::RustBox, player: &Player) {
-    let loc = format!("Coords: [{} - {}]", player.location.x, player.location.y);
-    rustbox.print(20, 20, rustbox::RB_BOLD, Color::White, Color::Black, loc.as_ref());
-}
+// fn draw_ui(rustbox: &rustbox::RustBox, player: &Player) {
+// }
 
 fn main() {
     let rustbox = match RustBox::init(Default::default()) {
@@ -64,49 +45,46 @@ fn main() {
         Result::Err(e) => panic!("{}", e),
     };
 
-    let location = Point::new(2, 2);
-    let mut player = Player { location: location };
-
     let mut world = World::generate();
-    let kobold = Creature::kobold(20, 20);
+
+    let location = world.random_empty_location();
+    let game_info = Rc::new(RefCell::new(GameInfo::new(location.clone())));
+
+    let mut player = Box::new(Creature::player(location.x, location.y, game_info.clone()));
+    world.creatures.push(player);
+
+    let loc = world.random_empty_location();
+    let kobold = Box::new(Creature::kobold(loc.x, loc.y, game_info.clone()));
     world.creatures.push(kobold);
-    //let game = Game { world: world, player: player };
 
     loop {
         rustbox.clear();
 
         draw_world(&rustbox, &world);
-        draw_player(&rustbox, &player);
         draw_creatures(&rustbox, &world);
         // draw_ui(&rustbox, &player);
 
+        let playerloc = game_info.borrow().player_location;
+        let locstring = format!("Coords: [{} - {}]", playerloc.x, playerloc.y);
+        rustbox.print(20, 20, rustbox::RB_BOLD, Color::White, Color::Black, locstring.as_ref());
+
         rustbox.present();
+
+        game_info.borrow_mut().keypress = None;
 
         match rustbox.poll_event(false) {
             Ok(rustbox::Event::KeyEvent(key)) => {
                 match key {
-                    Key::Left | Key::Char('h') => {
-                        let loc = player.location.left();
-                        player.move_to(&mut world, loc);
-                    }
-                    Key::Right | Key::Char('l') => {
-                        let loc = player.location.right();
-                        player.move_to(&mut world, loc);
-                    }
-                    Key::Up | Key::Char('k') => {
-                        let loc = player.location.up();
-                        player.move_to(&mut world, loc);
-                    }
-                    Key::Down | Key::Char('j') => {
-                        let loc = player.location.down();
-                        player.move_to(&mut world, loc);
-                    }
                     Key::Char('q') => { break; }
-                    _ => { }
+                    key => { game_info.borrow_mut().keypress = Some(key) }
                 }
             },
             Err(e) => panic!("{}", e.description()),
             _ => { }
+        }
+
+        for creature in world.creatures.iter_mut() {
+            creature.tick(game_info.clone());
         }
     }
 }

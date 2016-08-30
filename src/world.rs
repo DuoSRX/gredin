@@ -1,13 +1,16 @@
+extern crate rustbox;
 use rand::{thread_rng, Rng};
+
 use tile::Tile;
+use point::Point;
 use creature::Creature;
 
 const WORLD_WIDTH: i16 = 100;
-const WORLD_HEIGHT: i16 = 100;
+const WORLD_HEIGHT: i16 = 50;
 
 pub struct World {
     pub tiles: Vec<Vec<Tile>>,
-    pub creatures: Vec<Creature>,
+    pub creatures: Vec<Box<Creature>>,
 }
 
 impl World {
@@ -15,6 +18,23 @@ impl World {
         if self.at(x, y).diggable() {
             self.tiles[y as usize][x as usize] = Tile::Empty;
         }
+    }
+
+    // Yeah don't run that if the world doesn't have an empty tile somewhere...
+    pub fn random_empty_location(&self) -> Point {
+        let mut rng = thread_rng();
+        let mut point: Option<Point> = None;
+
+        while point.is_none() {
+            let x = rng.gen_range(0, WORLD_WIDTH - 1);
+            let y = rng.gen_range(0, WORLD_HEIGHT - 1);
+            let tile = self.at(x, y);
+            if tile == Tile::Empty {
+                point = Some(Point { x: x, y: y });
+            }
+        }
+
+        point.unwrap()
     }
 
     pub fn generate() -> World {
@@ -88,5 +108,20 @@ impl World {
         }
 
         block
+    }
+}
+
+#[derive(PartialEq, Clone, Copy)]
+pub struct GameInfo {
+    pub keypress: Option<rustbox::Key>,
+    pub player_location: Point,
+}
+
+impl GameInfo {
+    pub fn new(player_location: Point) -> GameInfo {
+        GameInfo {
+            keypress: None,
+            player_location: player_location,
+        }
     }
 }
