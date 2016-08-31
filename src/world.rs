@@ -97,7 +97,7 @@ impl World {
         }
     }
 
-    fn block_at(&self, x: i16, y: i16) -> Vec<Tile> {
+    pub fn block_at(&self, x: i16, y: i16) -> Vec<Tile> {
         let mut block = Vec::new();
 
         for dy in -1..2 {
@@ -108,20 +108,5 @@ impl World {
         }
 
         block
-    }
-}
-
-#[derive(PartialEq, Clone, Copy)]
-pub struct GameInfo {
-    pub keypress: Option<rustbox::Key>,
-    pub player_location: Point,
-}
-
-impl GameInfo {
-    pub fn new(player_location: Point) -> GameInfo {
-        GameInfo {
-            keypress: None,
-            player_location: player_location,
-        }
     }
 }
