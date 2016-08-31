@@ -37,6 +37,23 @@ impl World {
         point.unwrap()
     }
 
+    pub fn random_free_square(&self, x: i16, y: i16) -> Point {
+        let mut rng = thread_rng();
+        let mut block = Vec::new();
+
+        for dy in -1..2 {
+            for dx in -1..2 {
+                let point = Point { x: x + dx, y: y + dy };
+                if self.at(point.x, point.y).can_move_through() {
+                    block.push(point);
+                }
+            }
+        }
+
+        let default = Point { x: x, y: y };
+        *rng.choose(block.as_slice()).unwrap_or(&default)
+    }
+
     pub fn generate() -> World {
         let mut tiles = Vec::with_capacity(50);
         let mut rng = thread_rng();
